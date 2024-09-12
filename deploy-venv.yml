@@ -1,0 +1,52 @@
+---
+
+- name: Create a python venv and install required pip packages
+  hosts: m3
+  become: yes
+  become_user: root
+  vars:
+    sup_path: /var/lib/support
+  tasks:
+    - name: Add bash alias for root user
+      lineinfile:
+        path: /root/.bashrc
+        line: 'alias sup="cd {{ sup_path }}"'
+        state: present
+    - name: Create directory
+      file:
+        path: "{{ sup_path }}"
+        state: directory
+        owner: root
+        group: root
+        mode: 0775
+        recurse: yes
+    - name: Copy support tools 
+      synchronize:
+        src: public-support-tools/
+        dest: "{{ sup_path }}"
+        use_ssh_args: true
+        verify_host: false
+    - name: Copy pip packages
+      synchronize:
+        src: pip_packages
+        dest: "{{ sup_path }}"
+        use_ssh_args: true
+        verify_host: false
+    - name: Create virtualenv
+      command: /usr/bin/python3 -m venv venv
+      args:
+        chdir: "{{ sup_path }}"
+        creates: "{{ sup_path }}/venv/bin/activate"
+    - name: Update pip package in venv
+      ansible.builtin.pip:
+        name: pip==21.3.1
+        virtualenv: "{{ sup_path }}/venv"
+        chdir: "{{ sup_path }}"
+        extra_args: "--no-index --find-links={{ sup_path }}/pip_packages"
+    - name: Install packages from requirements.txt
+      ansible.builtin.pip:
+        requirements: "{{ sup_path }}/requirements.txt"
+        virtualenv: "{{ sup_path }}/venv"
+        chdir: "{{ sup_path }}"
+        extra_args: --no-index --find-links={{ sup_path }}/pip_packages
+
