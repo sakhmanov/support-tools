@@ -3,12 +3,8 @@ import psutil
 import subprocess 
 from prettytable import PrettyTable
 
-# The script is using USS memmory metrics instead of RSS 
+# The script is using USS memory metrics instead of RSS 
 # https://gmpy.dev/blog/2016/real-process-memory-and-environ-in-python
-
-# You can use the following code to convert bytes 
-# to automatically scaled to shortest three digit
-# unit and display the units in python:
 
 def bytes_to_shortest_unit(byte):
     units = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
